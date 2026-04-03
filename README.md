@@ -17,5 +17,14 @@ This repository explores GitHub repository metadata and API endpoints to identif
 ## Recent Commits
 
 <!-- START_COMMIT_LIST -->
+- `b9dcf47` fix: expand visible commit range
+- `a901dae` docs: update commit list
 - `9d534e1` docs: add workflow
+- `d99a4b7` docs: update README
+- `b4642f4` Merge pull request #3 from OpenSource-2026/exploration
+- `a07a3b6` feat: add specific method for making url flattened data to feature
+- `35a04e6` feat: deleted useless data after walk json
+- `20cf45a` docs: add data filtering strategy
+- `039e5b5` Merge pull request #2 from OpenSource-2026/exploration
+- `00d2885` feat: fixed walk json function and extracted flattened data
 <!-- END_COMMIT_LIST -->
