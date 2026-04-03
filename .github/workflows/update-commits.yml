@@ -1,0 +1,49 @@
+name: Update README commit list
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-readme:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update commit list
+        run: |
+          python << 'EOF'
+          import subprocess, re
+          from pathlib import Path
+
+          readme = Path("README.md").read_text()
+
+          commits = subprocess.check_output(
+              ["git", "log", "--pretty=format:- `%h` %s", "-n", "10"],
+              text=True
+          )
+
+          new_section = f"<!-- START_COMMIT_LIST -->\n{commits}\n<!-- END_COMMIT_LIST -->"
+
+          updated = re.sub(
+              r"<!-- START_COMMIT_LIST -->.*<!-- END_COMMIT_LIST -->",
+              new_section,
+              readme,
+              flags=re.S
+          )
+
+          Path("README.md").write_text(updated)
+          EOF
+
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "actions@github.com"
+          git add README.md
+          git commit -m "docs: update commit list" || exit 0
+          git push
