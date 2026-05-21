@@ -1,0 +1,107 @@
+{
+  "diagnosis": {
+    "repo_name": "pandas-dev/pandas",
+    "overall_score": 99.7489286553511,
+    "healthy_probability": 0.997489286553511,
+    "overall_grade": "Excellent",
+    "model_name": "LogisticRegression",
+    "target": "new_label"
+  },
+  "dimensions": [
+    {
+      "dimension": "community_activity",
+      "dimension_label": "커뮤니티 활성도",
+      "score": 86.21876461024695,
+      "grade": "Excellent",
+      "core_question": "이 프로젝트는 현재 살아 움직이고 있는가?",
+      "concepts": "Activity Volume, Responsiveness, Engagement Quality",
+      "summary": "커뮤니티 활성도 점수는 86.2점으로 양호하다.",
+      "strength_features": [
+        "num_events",
+        "has_PullRequestEvent",
+        "has_IssueCommentEvent"
+      ],
+      "risk_features": [
+        "recent_event_density",
+        "development_ratio",
+        "non_external_activity_ratio"
+      ]
+    },
+    {
+      "dimension": "sustainability",
+      "dimension_label": "지속 가능성",
+      "score": 74.83848623687595,
+      "grade": "Good",
+      "core_question": "이 프로젝트는 앞으로도 유지될 수 있는가?",
+      "concepts": "Contributor Structure, Diversity, Activity Stability",
+      "summary": "지속 가능성 점수는 74.8점으로 양호하다.",
+      "strength_features": [
+        "num_contributors",
+        "is_recently_updated_90d",
+        "is_recently_pushed_30d"
+      ],
+      "risk_features": [
+        "is_stale_365d",
+        "contributors_to_stars_ratio",
+        "last_update_recency_days"
+      ]
+    },
+    {
+      "dimension": "code_quality_reliability",
+      "dimension_label": "코드 품질 및 신뢰성",
+      "score": 44.964128277245244,
+      "grade": "Weak",
+      "core_question": "이 프로젝트의 산출물은 믿을 수 있는가?",
+      "concepts": "Engineering Practice, Defect Signals, Security Signals",
+      "summary": "코드 품질 및 신뢰성 점수는 45.0점으로 개선이 필요하다.",
+      "strength_features": [
+        "semver_tag_ratio",
+        "has_pull_requests",
+        "PullRequestEvent_ratio"
+      ],
+      "risk_features": [
+        "latest_tag_is_prerelease",
+        "issue_burden_score",
+        "open_issues_to_stars_ratio"
+      ]
+    },
+    {
+      "dimension": "legal_operational_governance",
+      "dimension_label": "법적/운영 거버넌스",
+      "score": 54.96175154414852,
+      "grade": "Weak",
+      "core_question": "이 프로젝트는 조직적으로 안전하게 운영되는가?",
+      "concepts": "Legal Compliance, Governance Structure",
+      "summary": "법적/운영 거버넌스 점수는 55.0점으로 개선이 필요하다.",
+      "strength_features": [
+        "has_issues",
+        "has_projects",
+        "has_downloads"
+      ],
+      "risk_features": [
+        "disabled",
+        "archived",
+        "negative_repo_state"
+      ]
+    },
+    {
+      "dimension": "project_maturity",
+      "dimension_label": "프로젝트 성숙도",
+      "score": 69.07381105527452,
+      "grade": "Moderate",
+      "core_question": "이 프로젝트는 성숙한 운영 체계를 갖추었는가?",
+      "concepts": "Release Engineering, Adoption/Popularity, Lifecycle/Scale",
+      "summary": "프로젝트 성숙도 점수는 69.1점으로 중간 수준이다.",
+      "strength_features": [
+        "num_tags",
+        "has_deployments",
+        "tag_based_deployment_ratio"
+      ],
+      "risk_features": [
+        "release_quality_score",
+        "stars_per_size",
+        "tag_release_velocity"
+      ]
+    }
+  ]
+}
