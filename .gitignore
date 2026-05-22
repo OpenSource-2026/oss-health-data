@@ -5,5 +5,28 @@ __pycache__/
 .env
 .DS_Store
 *.egg-info/
-*.csv
+
+# Large/intermediate raw collection outputs
+src/data/repo/**/*.csv
+
+# Experiment outputs by default
+src/outputs/**/*.csv
+src/outputs/**/*.parquet
+
+# Allow selected reproducible/final datasets
+!src/data/main/dataset.csv
+!src/backend_handoff/data/reference_dataset.csv
+!src/outputs/2_model/holdout_comparison.csv
+!src/outputs/2_model/dataset_model_search_results.csv
+!src/outputs/2_model/final_model_importance.csv
+!src/outputs/2_model/final_model_permutation_importance.csv
+!src/outputs/2_model/final_training_dataset.csv
+!src/outputs/2_model/hyperparameter_tuning_results.csv
+!src/outputs/2_model/shap_importance_result.csv
+
+# Parquet: keep ignored unless intentionally small/final
 *.parquet
+
+# Model artifact: if small enough, commit; if large, use Git LFS
+# src/models/*.joblib
+# src/backend_handoff/models/*.joblib

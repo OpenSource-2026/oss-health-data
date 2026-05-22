@@ -1,0 +1,2 @@
+num_tags,stable_tag_ratio,prerelease_tag_ratio,latest_tag_is_stable,latest_tag_is_prerelease,semver_tag_ratio,num_major_versions,num_minor_versions
+30,0.6333333333333333,0.36666666666666664,0.0,1.0,1.0,2,6
