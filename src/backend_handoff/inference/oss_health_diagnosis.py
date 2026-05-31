@@ -20,7 +20,10 @@ PACKAGE_DIR = Path(__file__).resolve().parents[1]
 MODEL_PATH = PACKAGE_DIR / "models" / "oss_health_best_model.joblib"
 FEATURE_PATH = PACKAGE_DIR / "models" / "oss_health_best_features.json"
 METADATA_PATH = PACKAGE_DIR / "models" / "oss_health_model_metadata.json"
+META_MODEL_PATH = PACKAGE_DIR / "models" / "oss_health_meta_model.joblib"
+META_FEATURE_PATH = PACKAGE_DIR / "models" / "oss_health_meta_features.json"
 REFERENCE_DATA_PATH = PACKAGE_DIR / "data" / "reference_dataset.csv"
+EPS = 1e-6
 
 
 def _load_artifacts():
@@ -29,10 +32,17 @@ def _load_artifacts():
         model_features = json.load(f)
     with open(METADATA_PATH, "r", encoding="utf-8") as f:
         model_metadata = json.load(f)
-    return model, model_features, model_metadata
+    meta_model = None
+    meta_features = []
+    if META_MODEL_PATH.exists() and META_MODEL_PATH.stat().st_size > 0:
+        meta_model = joblib.load(META_MODEL_PATH)
+    if META_FEATURE_PATH.exists() and META_FEATURE_PATH.stat().st_size > 0:
+        with open(META_FEATURE_PATH, "r", encoding="utf-8") as f:
+            meta_features = json.load(f)
+    return model, model_features, model_metadata, meta_model, meta_features
 
 
-MODEL, MODEL_FEATURES, MODEL_METADATA = _load_artifacts()
+MODEL, MODEL_FEATURES, MODEL_METADATA, META_MODEL, META_FEATURES = _load_artifacts()
 
 
 def minmax_series(values: pd.Series) -> pd.Series:
@@ -433,6 +443,11 @@ def percentile_score(value: Any, reference_values: pd.Series, higher_is_better: 
     return float(np.clip(percentile * 100, 0, 100))
 
 
+def safe_logit(probability: float) -> float:
+    probability = float(np.clip(probability, EPS, 1 - EPS))
+    return float(np.log(probability / (1 - probability)))
+
+
 def score_to_grade(score: float) -> str:
     if score >= 85:
         return "Excellent"
@@ -522,6 +537,27 @@ def make_dimension_comment(score: float, dimension_key: str, detail: pd.DataFram
     }
 
 
+def build_meta_input(healthy_probability: float, dimension_rows: list[Dict[str, Any]]) -> pd.DataFrame:
+    values = {"raw_model_logit": safe_logit(healthy_probability)}
+    for row in dimension_rows:
+        values[f"{row['dimension']}_score"] = row["score"]
+    return pd.DataFrame([values])
+
+
+def predict_overall_probability(healthy_probability: float, dimension_rows: list[Dict[str, Any]]) -> float:
+    if META_MODEL is None or not META_FEATURES:
+        return healthy_probability
+    meta_input = build_meta_input(healthy_probability, dimension_rows)
+    for feature in META_FEATURES:
+        if feature not in meta_input.columns:
+            meta_input[feature] = np.nan
+    if hasattr(META_MODEL, "predict_proba"):
+        value = META_MODEL.predict_proba(meta_input[META_FEATURES])[0, 1]
+    else:
+        value = META_MODEL.predict(meta_input[META_FEATURES])[0]
+    return float(np.clip(value, 0, 1))
+
+
 def diagnose_repository(repo_url_or_full_name: str) -> Dict[str, Any]:
     full_name, raw_repo_df, repo_features = build_single_repo_features(repo_url_or_full_name)
     model_input = repo_features[MODEL_FEATURES].copy()
@@ -529,12 +565,14 @@ def diagnose_repository(repo_url_or_full_name: str) -> Dict[str, Any]:
         model_input[col] = pd.to_numeric(model_input[col], errors="coerce")
 
     healthy_probability = float(MODEL.predict_proba(model_input)[0, 1])
-    overall_score = healthy_probability * 100
 
     dimension_rows = []
     for dimension_key in DIMENSION_CONFIG:
         score, detail = score_dimension(repo_features, dimension_key)
         dimension_rows.append(make_dimension_comment(score, dimension_key, detail))
+
+    overall_probability = predict_overall_probability(healthy_probability, dimension_rows)
+    overall_score = overall_probability * 100
 
     return {
         "repo_name": full_name,

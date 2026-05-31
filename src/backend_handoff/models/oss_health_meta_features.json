@@ -1,0 +1,8 @@
+[
+  "raw_model_logit",
+  "community_activity_score",
+  "sustainability_score",
+  "code_quality_reliability_score",
+  "legal_operational_governance_score",
+  "project_maturity_score"
+]
