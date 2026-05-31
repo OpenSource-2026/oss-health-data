@@ -134,5 +134,22 @@
   "best_params": {
     "model__C": 1.2357483710912178,
     "model__penalty": "l2"
+  },
+  "overall_score_method": "meta_model_regression_score",
+  "healthy_probability_method": "base_model_predict_proba",
+  "meta_model_name": "Ridge",
+  "meta_model_target_col": "oss_health_score",
+  "meta_model_features": [
+    "raw_model_logit",
+    "community_activity_score",
+    "sustainability_score",
+    "code_quality_reliability_score",
+    "legal_operational_governance_score",
+    "project_maturity_score"
+  ],
+  "meta_model_metrics": {
+    "mae": 0.01535325321064912,
+    "rmse": 0.021233123374336912,
+    "r2": 0.8956378474847287
   }
 }
