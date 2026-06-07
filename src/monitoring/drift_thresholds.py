@@ -4,6 +4,8 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 import numpy as np
 import pandas as pd
+from pandas.errors import EmptyDataError
+
 
 @dataclass
 class DriftThresholds:
@@ -23,19 +25,22 @@ DEFAULT_THRESHOLDS = DriftThresholds(
 
 def load_drift_history(history_path: str | Path) -> pd.DataFrame:
     path = Path(history_path)
-    if not path.exists():
-        return pd.DataFrame(
-            columns=[
-                "run_id",
-                "overall_drift_score",
-                "drifted_feature_ratio",
-                "high_drift_feature_count",
-                "retrain_required",
-                "created_at",
-            ]
-        )
+    columns = [
+        "run_id",
+        "overall_drift_score",
+        "drifted_feature_ratio",
+        "high_drift_feature_count",
+        "retrain_required",
+        "created_at",
+    ]
 
-    return pd.read_csv(path)
+    if not path.exists() or path.stat().st_size == 0:
+        return pd.DataFrame(columns=columns)
+
+    try:
+        return pd.read_csv(path)
+    except EmptyDataError:
+        return pd.DataFrame(columns=columns)
 
 def calculate_dynamic_thresholds(
         history: pd.DataFrame,
