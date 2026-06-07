@@ -3,6 +3,7 @@
 from __future__ import annotations
 import pandas as pd
 from scoring.dimension_scores import score_all_dimensions
+from backend_handoff.features.engineered_features import add_engineered_features 
 from pathlib import Path
 
 FIVE_DIMENSION_KEYS = [
@@ -12,6 +13,9 @@ FIVE_DIMENSION_KEYS = [
     "legal_operational_governance",
     "project_maturity",  
 ]
+
+def prepare_scoring_frame(data: pd.DataFrame) -> pd.DataFrame:
+    return add_engineered_features(data)
 
 # 각 dimension 별 feature keys_개별 repo
 def calculate_five_das(keys: list[str], scores: dict[str, float]) -> float:
@@ -30,12 +34,27 @@ def add_five_das(
     features_df: pd.DataFrame,
     reference_df: pd.DataFrame,
 ) -> pd.DataFrame:
-    out = features_df.copy()
-    out["five_das"] = out.apply(lambda row: calculate_five_das_for_repo(row, reference_df), axis=1)
+    
+    features_ready = prepare_scoring_frame(features_df)
+    reference_ready = prepare_scoring_frame(reference_df)
+
+    out = features_ready.copy()
+    out["five_das"] = out.apply(lambda row: calculate_five_das_for_repo(row, reference_ready), axis=1)
     return out
 
-def healthy_lower_bound(scores, reference_scores) -> float:
-    return reference_scores["five_das"].quantile(0.10)
+def healthy_lower_bound(
+    reference_with_5das: pd.DataFrame,
+    quantile: float = 0.10,
+) -> float:
+    if "five_das" not in reference_with_5das.columns:
+        raise ValueError("reference_with_5das must contain five_das column")
+
+    scores = pd.to_numeric(reference_with_5das["five_das"], errors="coerce").dropna()
+
+    if scores.empty:
+        raise ValueError("No valid five_das scores found")
+
+    return float(scores.quantile(quantile))
 
 def load_reference(reference_path: str)-> pd.DataFrame:
     return pd.read_csv(reference_path)
@@ -70,3 +89,4 @@ def calculate_reference_5das_snapshot(
 
 # active reference _ 점수를 매길 대상 데이터셋
 # scoring reference _ 점수 매김의 기준이 되는 데이터셋 (5DAS 계산에 활용)
+
