@@ -23,6 +23,7 @@ class PromotionResult:
     champion_path: str
     archived_champion_path: str | None
     backend_handoff_models_path: str | None
+    data_models_path: str | None
     metadata_path: str
 
 def utc_now() -> str:
@@ -72,6 +73,7 @@ def promote_challenger_to_champion(
     trigger_reason: str,
     evaluation_report_path: str,
     backend_handoff_models_path: str | None = None,
+    data_models_path: str | None = "src/models",
 ) -> PromotionResult:
     project_root_path = Path(project_root)
 
@@ -115,6 +117,13 @@ def promote_challenger_to_champion(
         copy_file_set(champion, backend_target)
         resolved_backend_handoff_path = str(backend_target)
 
+    resolved_data_models_path = None
+
+    if data_models_path:
+        data_models_target = resolve_path(project_root_path, data_models_path)
+        copy_file_set(champion, data_models_target)
+        resolved_data_models_path = str(data_models_target)
+
     return PromotionResult(
         promoted=True,
         model_version=model_version,
@@ -122,5 +131,6 @@ def promote_challenger_to_champion(
         champion_path=str(champion),
         archived_champion_path=archived_champion_path,
         backend_handoff_models_path=resolved_backend_handoff_path,
+        data_models_path=resolved_data_models_path,
         metadata_path=str(metadata_path),
     )
