@@ -25,7 +25,7 @@ def is_binary(series: pd.Series) -> bool:
     return values <= {0, 1, 0.0, 1.0}
 
 def psi(reference: pd.Series, current: pd.Series, bins: int = 10) -> float:
-    ref = pd.to_numeric(reference, errors="coerce").dropna().to_numpy()
+    ref = pd.to_numeric(reference, errors="coerce").dropna().to_numpy(dtype=float)
     cur = pd.to_numeric(current, errors="coerce").dropna().to_numpy(dtype=float)
 
     if len(ref) == 0 or len(cur) == 0:
@@ -45,7 +45,7 @@ def psi(reference: pd.Series, current: pd.Series, bins: int = 10) -> float:
     ref_pct = np.clip(ref_pct, eps, None)
     cur_pct = np.clip(cur_pct, eps, None)
 
-    return float(np.sum(cur_pct - ref_pct) * np.log(cur_pct / ref_pct))
+    return float(np.sum((cur_pct - ref_pct) * np.log(cur_pct / ref_pct)))
 
 def binary_ratio_diff(reference: pd.Series, current: pd.Series) -> float:
     ref = pd.to_numeric(reference, errors="coerce").dropna()
@@ -100,7 +100,7 @@ def detect_feature_drift(
     drifted_ratio = len(drifted) / len(results)
 
     reasons = []
-    
+
     if overall >= overall_threshold:
         reasons.append(f"overall_drift_score >= {overall_threshold:.4f}")
 
