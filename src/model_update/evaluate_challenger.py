@@ -34,15 +34,26 @@ def save_json(payload: dict[str, Any], path: str | Path) -> None:
 
 
 def extract_champion_metrics(champion_metadata: dict[str, Any]) -> dict[str, float]:
-    tuned = champion_metadata.get("tuned_holdout_metrics", {})
+    cv = champion_metadata.get("final_cv_summary", {})
+    holdout = champion_metadata.get("tuned_holdout_metrics", {})
     meta = champion_metadata.get("meta_model_metrics", {})
 
     return {
-        "base_roc_auc": float(tuned.get("roc_auc", 0.0)),
-        "base_f1": float(tuned.get("f1", 0.0)),
-        "base_accuracy": float(tuned.get("accuracy", 0.0)),
-        "base_precision": float(tuned.get("precision", 0.0)),
-        "base_recall": float(tuned.get("recall", 0.0)),
+        "base_roc_auc": float(
+            cv.get("roc_auc_mean", holdout.get("roc_auc", 0.0))
+        ),
+        "base_f1": float(
+            cv.get("f1_mean", holdout.get("f1", 0.0))
+        ),
+        "base_accuracy": float(
+            cv.get("accuracy_mean", holdout.get("accuracy", 0.0))
+        ),
+        "base_precision": float(
+            cv.get("precision_mean", holdout.get("precision", 0.0))
+        ),
+        "base_recall": float(
+            cv.get("recall_mean", holdout.get("recall", 0.0))
+        ),
         "meta_mae": float(meta.get("mae", 999.0)),
         "meta_rmse": float(meta.get("rmse", 999.0)),
         "meta_r2": float(meta.get("r2", -999.0)),
