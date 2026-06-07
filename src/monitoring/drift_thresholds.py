@@ -71,7 +71,7 @@ def calculate_dynamic_thresholds(
 
     overall_threshold = float(clean["overall_drift_score"].quantile(quantile))
     drifted_ratio_threshold = float(clean["drifted_feature_ratio"].quantile(quantile))
-    high_count_threshold = float(np.ceil(clean["high_drift_feature_count"].quantile(quantile))) # 가장 가까운 정수로 
+    high_count_threshold = int(np.ceil(clean["high_drift_feature_count"].quantile(quantile))) # 가장 가까운 정수로 
 
     return DriftThresholds(
         overall_threshold=overall_threshold,
