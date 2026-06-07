@@ -10,7 +10,7 @@ import pandas as pd
 import requests
 from features.build_features import build_all_features
 from data.extract_github_repo import build_repo_dataframe
-from five_das import (add_five_das, calculate_reference_5das_snapshot, load_reference,)
+from reference.five_das import (add_five_das, calculate_reference_5das_snapshot, load_reference,)
 
 GITHUB_API = "https://api.github.com"
 
@@ -84,7 +84,7 @@ def build_candidate_search_policy(
     )
 
 def github_headers() -> dict[str, str]:
-    headers = {"Accept":"application/vnd.github_json"}
+    headers = {"Accept":"application/vnd.github+json"}
     token = os.getenv("GITHUB_TOKEN")
     if token:
         headers["Authorization"] = f"Bearer {token}"
@@ -134,7 +134,7 @@ def build_candidate_queries(
         f"stars:>={thresholds.min_stars}",
         f"forks:>={thresholds.min_forks}",
         f"pushed:>={pushed_after}",
-        f"created:<{created_before}",
+        f"created:<={created_before}",
     ]
 
     if thresholds.require_not_archived:
@@ -152,7 +152,7 @@ def build_candidate_queries(
 
 def collect_candidate_repositories(
         thresholds: CandidateSearchPolicy,
-        languages: list[str],) -> list[str]:
+        languages: list[str] | None = None) -> list[str]:
    
     if languages is None:
         languages = ["Python", "JavaScript", "TypeScript", "Go", "Rust", "Java"]
