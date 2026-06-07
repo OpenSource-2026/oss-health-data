@@ -1,0 +1,12 @@
+{
+  "event_type": "model_promoted",
+  "project": "oss-health",
+  "model_version": "20260608_031522",
+  "trigger_reason": "feature_drift",
+  "champion_path": "src/model_registry/champion",
+  "metadata_path": "src/model_registry/champion/model_version.json",
+  "backend_handoff_models_path": "src/backend_handoff/models",
+  "created_at": "2026-06-08T03:15:22+00:00",
+  "producer": "data-pipeline",
+  "consumer": "backend"
+}
