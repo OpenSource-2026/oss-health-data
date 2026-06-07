@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 import pandas as pd
-from five_das import calculate_reference_5das_snapshot
+from reference.five_das import calculate_reference_5das_snapshot
 from pathlib import Path
 import json
 from dataclasses import asdict, dataclass
+from pandas.errors import EmptyDataError
 
-
+@dataclass
 class ReferenceUpdateResult:
     reference_changed: bool
     lower_bound: float
@@ -39,25 +40,47 @@ def select_retired_repos(
 ) -> list[str]:
     retire_candidates = active[active["below_bound_count"] >= hysteresis_count]
     retire_candidates = retire_candidates.sort_values("five_das", ascending=True)
-    max_retire = int(len(active)*max_retire_ratio)
+    max_retire = max(1, int(len(active) * max_retire_ratio))
     retire_candidates = retire_candidates.head(max_retire)
     return retire_candidates["repo_name"].tolist()
     
 def promote_from_candidate_pool(
-        active: pd.DataFrame,
-        candidate_pool: pd.DataFrame,
-        retired_repos: list[str],
-) -> pd.DataFrame: 
+    active: pd.DataFrame,
+    candidate_pool: pd.DataFrame,
+    retired_repos: list[str],
+) -> tuple[pd.DataFrame, pd.DataFrame, list[str]]:
     if not retired_repos:
         return active, candidate_pool, []
+
     active_after_drop = active[~active["repo_name"].isin(retired_repos)].copy()
-    needed=len(retired_repos)
-    candidate_pool = candidate_pool.sort_value("five_das", ascending=False)
-    promoted = candidate_pool.head(needed)
+    needed = len(retired_repos)
+
+    candidate_pool = candidate_pool.sort_values("five_das", ascending=False)
+
+    if len(candidate_pool) < needed:
+        raise ValueError(
+            f"Not enough candidates to replace retired references. "
+            f"needed={needed}, available={len(candidate_pool)}"
+        )
+
+    promoted = candidate_pool.head(needed).copy()
     remaining_pool = candidate_pool.iloc[needed:].copy()
-    promoted["below_bound_count"]=0
+
+    promoted["below_bound_count"] = 0
+
     next_active = pd.concat([active_after_drop, promoted], ignore_index=True)
     return next_active, remaining_pool, promoted["repo_name"].tolist()
+
+def read_optional_csv(path: str | Path) -> pd.DataFrame:
+    csv_path = Path(path)
+
+    if not csv_path.exists() or csv_path.stat().st_size == 0:
+        return pd.DataFrame()
+
+    try:
+        return pd.read_csv(csv_path)
+    except EmptyDataError:
+        return pd.DataFrame()
 
 def run_reference_update(
     active_reference_path: str,
@@ -68,9 +91,9 @@ def run_reference_update(
     output_report_path: str,
 ) -> ReferenceUpdateResult:
 
-    candidate_pool = pd.read_csv(candidate_pool_path)
+    candidate_pool = read_optional_csv(candidate_pool_path)
     active_with_5das, lower_bound = calculate_reference_5das_snapshot(active_reference_path, reference_feature_path)
-    active_scored = find_below(active_scored, lower_bound)
+    active_scored = find_below(active_with_5das, lower_bound)
     retired_repos = select_retired_repos(active_scored)
     if candidate_pool.empty and retired_repos:
         raise ValueError("no candidate to replace")
@@ -96,6 +119,6 @@ def run_reference_update(
         output_reference_path=output_reference_path,
     )
 
-    with open(output_report_path, "w", enxoding="utf-8") as f:
+    with open(output_report_path, "w", encoding="utf-8") as f:
         json.dump(asdict(result), f, ensure_ascii=False, indent=2)
     return result
